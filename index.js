@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors";
 const app = express();
+const dotenv = require("dotenv").config();
+import mongodb from "mongodb";
 import { MongoClient } from "mongodb";
-const URL =
-  "mongodb+srv://kartii:admin123@cluster0.ztfs0cy.mongodb.net/shopDB?retryWrites=true&w=majority";
+const URL = process.env.DB;
 let user = [];
 
 // MidleWare
@@ -81,40 +82,74 @@ app.get("/users", async (req, res) => {
 });
 
 // getting the particular Element
-app.get("/user/:id", (req, res) => {
-  let userId = req.params.id;
-  let u = user.find((item) => item.id == userId);
-  if (u) {
-    res.json(u);
-  } else {
-    res.json({ message: "User not found" });
+app.get("/user/:id", async (req, res) => {
+  //   let userId = req.params.id;
+  //   let u = user.find((item) => item.id == userId);
+  //   if (u) {
+  //     res.json(u);
+  //   } else {
+  //     res.json({ message: "User not found" });
+  //   }
+  // });
+  try {
+    let User = await client
+      .db("shopDB")
+      .collection("users")
+      .findOne({ _id: mongodb.ObjectId(req.params.id) });
+    res.json(User);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Something went wrong" });
   }
 });
 
 // Update
-app.put("/user/:id", (req, res) => {
-  let userId = req.params.id;
-  let u = user.findIndex((item) => item.id == userId);
-  if (u !== -1) {
-    Object.keys(req.body).forEach((el) => {
-      user[u][el] = req.body[el];
-    });
-    res.json({ message: "Done" });
-  } else {
-    res.json({ message: "User not found" });
+app.put("/user/:id", async (req, res) => {
+  // let userId = req.params.id;
+  // let u = user.findIndex((item) => item.id == userId);
+  // if (u !== -1) {
+  //   Object.keys(req.body).forEach((el) => {
+  //     user[u][el] = req.body[el];
+  //   });
+  //   res.json({ message: "Done" });
+  // } else {
+  //   res.json({ message: "User not found" });
+  // }
+  try {
+    let User = await client
+      .db("shopDB")
+      .collection("users")
+      .findOneAndUpdate(
+        { _id: mongodb.ObjectId(req.params.id) },
+        { $set: req.body }
+      );
+    res.json(User);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Something went wrong" });
   }
 });
 
 // Delete
-app.delete("/user/:id", (req, res) => {
-  let userId = req.params.id;
-  let u = user.findIndex((item) => item.id == userId);
+app.delete("/user/:id", async (req, res) => {
+  // let userId = req.params.id;
+  // let u = user.findIndex((item) => item.id == userId);
 
-  if (u !== -1) {
-    user.splice(u, 1);
-    res.json({ message: "user Deleted" });
-  } else {
-    res.json({ message: "User not found" });
+  // if (u !== -1) {
+  //   user.splice(u, 1);
+  //   res.json({ message: "user Deleted" });
+  // } else {
+  //   res.json({ message: "User not found" });
+  // }
+  try {
+    let User = await client
+      .db("shopDB")
+      .collection("users")
+      .findOneAndDelete({ _id: mongodb.ObjectId(req.params.id) });
+    res.json(User);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Something went wrong" });
   }
 });
 
