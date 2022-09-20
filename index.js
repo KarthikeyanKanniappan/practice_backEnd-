@@ -53,21 +53,30 @@ app.post("/user", async (req, res) => {
   // res.json({ message: "User Created Successfully" });
 });
 
-app.get("/users", (req, res) => {
-  let qparms = req.query;
+app.get("/users", async (req, res) => {
+  // let qparms = req.query;
 
-  if (qparms.limit === undefined) {
-    res.json(user);
-  } else {
-    let resUser = [];
-    for (
-      let i = parseInt(qparms.offset);
-      i < parseInt(qparms.offset) + parseInt(qparms.limit);
-      i++
-    ) {
-      resUser.push(user[i]);
-    }
+  // if (qparms.limit === undefined) {
+  //   res.json(user);
+  // } else {
+  //   let resUser = [];
+  //   for (
+  //     let i = parseInt(qparms.offset);
+  //     i < parseInt(qparms.offset) + parseInt(qparms.limit);
+  //     i++
+  //   ) {
+  //     resUser.push(user[i]);
+  //   }
+  // }
+  try {
+    let resUser = await client
+      .db("shopDB")
+      .collection("users")
+      .find()
+      .toArray();
     res.json(resUser);
+  } catch (err) {
+    res.status(500).json({ message: "Something went wrong" });
   }
 });
 
