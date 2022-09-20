@@ -1,7 +1,9 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
 const app = express();
-
+import { MongoClient } from "mongodb";
+const URL =
+  "mongodb+srv://kartii:admin123@cluster0.ztfs0cy.mongodb.net/shopDB?retryWrites=true&w=majority";
 let user = [];
 
 // MidleWare
@@ -12,14 +14,43 @@ app.use(
   })
 );
 
+const createConnection = async () => {
+  const client = new MongoClient(URL);
+  await client.connect();
+  console.log("MongoDB connected");
+  return client;
+};
+const client = await createConnection();
+
 app.get("/", (req, res) => {
   res.json({ message: "Success" });
 });
 
-app.post("/user", (req, res) => {
-  req.body.id = user.length + 1;
-  user.push(req.body);
-  res.json({ message: "User Created Successfully" });
+// create
+app.post("/user", async (req, res) => {
+  try {
+    // step1: create a Connection between Nodejs and MongoDB
+    // step2:Select the DB
+    // step3:Select the collection
+    // step4:Do the operation (create,update,Read,Delete)
+    let response = await client
+      .db("shopDB")
+      .collection("users")
+      .insertOne(req.body);
+    // step5:Close the connection
+    // await client.close();
+    if (response.acknowledged) {
+      res.status(200).json({ message: "Data inserted" });
+    } else {
+      throw new Error("Something went wrong");
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err });
+  }
+  // req.body.id = user.length + 1;
+  // user.push(req.body);
+  // res.json({ message: "User Created Successfully" });
 });
 
 app.get("/users", (req, res) => {
