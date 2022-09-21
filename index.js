@@ -1,13 +1,15 @@
 import express from "express";
 import cors from "cors";
-const app = express();
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 dotenv.config();
 import mongodb from "mongodb";
 import { MongoClient } from "mongodb";
 const URL = process.env.DB;
-let user = [];
+// let user = [];
 
+const app = express();
 // MidleWare
 app.use(express.json());
 app.use(
@@ -23,6 +25,23 @@ const createConnection = async () => {
   return client;
 };
 const client = await createConnection();
+
+let authenticate = (req, res, next) => {
+  try {
+    if (req.headers.authorization) {
+      let decode = jwt.verify(req.headers.authorization, process.env.SECRET);
+      if (decode) {
+        next();
+      } else {
+        res.status(401).json({ message: "Unauthorized" });
+      }
+    } else {
+      res.status(401).json({ message: "Unauthorized" });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 app.get("/", (req, res) => {
   res.json({ message: "Success" });
@@ -55,7 +74,7 @@ app.post("/user", async (req, res) => {
   // res.json({ message: "User Created Successfully" });
 });
 
-app.get("/users", async (req, res) => {
+app.get("/users", authenticate, async (req, res) => {
   // let qparms = req.query;
 
   // if (qparms.limit === undefined) {
@@ -83,7 +102,7 @@ app.get("/users", async (req, res) => {
 });
 
 // getting the particular Element
-app.get("/user/:id", async (req, res) => {
+app.get("/user/:id", authenticate, async (req, res) => {
   //   let userId = req.params.id;
   //   let u = user.find((item) => item.id == userId);
   //   if (u) {
@@ -105,7 +124,7 @@ app.get("/user/:id", async (req, res) => {
 });
 
 // Update
-app.put("/user/:id", async (req, res) => {
+app.put("/user/:id", authenticate, async (req, res) => {
   // let userId = req.params.id;
   // let u = user.findIndex((item) => item.id == userId);
   // if (u !== -1) {
@@ -132,7 +151,7 @@ app.put("/user/:id", async (req, res) => {
 });
 
 // Delete
-app.delete("/user/:id", async (req, res) => {
+app.delete("/user/:id", authenticate, async (req, res) => {
   // let userId = req.params.id;
   // let u = user.findIndex((item) => item.id == userId);
 
@@ -148,6 +167,51 @@ app.delete("/user/:id", async (req, res) => {
       .collection("users")
       .findOneAndDelete({ _id: mongodb.ObjectId(req.params.id) });
     res.json(User);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+//register
+app.post("/register", async (req, res) => {
+  try {
+    let user = client.db("shopDB").collection("Registration");
+    let salt = await bcrypt.genSalt(10);
+    let hash = await bcrypt.hash(req.body.password, salt);
+    req.body.password = hash;
+    let final = await user.insertOne(req.body);
+    res.json({ message: "User successfully registered" });
+  } catch (err) {
+    console.log(err);
+    res.json(err);
+  }
+});
+
+//login
+app.post("/login", async (req, res) => {
+  try {
+    //getting the data from the db for the sent email
+    let user = await client
+      .db("shopDB")
+      .collection("Registration")
+      .findOne({ email: req.body.email });
+
+    // Login logic
+    if (user) {
+      let compare = await bcrypt.compare(req.body.password, user.password);
+      if (compare) {
+        let token = jwt.sign({ _id: user._id }, process.env.SECRET, {
+          expiresIn: "5m",
+        });
+        res.json({ token });
+        // res.json({ message: "logged in successfully" });
+      } else {
+        res.json({ message: "password is wrong" });
+      }
+    } else {
+      res.status(401).json({ message: "user email not found" });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Something went wrong" });
