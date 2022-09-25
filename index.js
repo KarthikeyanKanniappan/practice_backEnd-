@@ -70,7 +70,7 @@ app.post("/user", async (req, res) => {
   // res.json({ message: "User Created Successfully" });
 });
 
-app.get("/users", authenticate, async (req, res) => {
+app.get("/users", async (req, res) => {
   // let qparms = req.query;
 
   // if (qparms.limit === undefined) {
