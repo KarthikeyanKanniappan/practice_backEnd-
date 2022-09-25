@@ -12,11 +12,7 @@ const URL = process.env.DB;
 const app = express();
 // MidleWare
 app.use(express.json());
-app.use(
-  cors({
-    origin: "http://localhost:3001",
-  })
-);
+app.use(cors());
 
 const createConnection = async () => {
   const client = new MongoClient(URL);
