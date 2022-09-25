@@ -214,10 +214,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/login", (req, res) => {
-  res.send("hi");
-});
-
 app.listen(process.env.PORT || 8000, () => {
   console.log("server listening on port 8000");
 });
