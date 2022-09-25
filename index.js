@@ -70,7 +70,7 @@ app.post("/user", async (req, res) => {
   // res.json({ message: "User Created Successfully" });
 });
 
-app.get("/users", async (req, res) => {
+app.get("/users", authenticate, async (req, res) => {
   // let qparms = req.query;
 
   // if (qparms.limit === undefined) {
@@ -192,7 +192,6 @@ app.post("/login", async (req, res) => {
       .db("shopDB")
       .collection("Registration")
       .findOne({ email: req.body.email });
-    console.log(user);
     // Login logic
     if (user) {
       let compare = await bcrypt.compare(req.body.password, user.password);
@@ -211,18 +210,6 @@ app.post("/login", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Something went wrong" });
-  }
-});
-
-app.get("/login/:id", async (req, res) => {
-  try {
-    let user = await client
-      .db("shopDB")
-      .collection("Registration")
-      .findOne({ _id: mongodb.ObjectId(req.params.id) });
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ err });
   }
 });
 
