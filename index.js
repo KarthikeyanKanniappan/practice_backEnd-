@@ -214,6 +214,18 @@ app.post("/login", async (req, res) => {
   }
 });
 
+app.get("/login/:id", async (req, res) => {
+  try {
+    let user = await client
+      .db("shopDB")
+      .collection("Registration")
+      .findOne({ _id: mongodb.ObjectId(req.params.id) });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ err });
+  }
+});
+
 app.listen(process.env.PORT || 8000, () => {
   console.log("server listening on port 8000");
 });
