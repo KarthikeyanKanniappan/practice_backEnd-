@@ -192,6 +192,7 @@ app.post("/login", async (req, res) => {
       .db("shopDB")
       .collection("Registration")
       .findOne({ email: req.body.email });
+    console.log(user);
     // Login logic
     if (user) {
       let compare = await bcrypt.compare(req.body.password, user.password);
@@ -211,6 +212,10 @@ app.post("/login", async (req, res) => {
     console.log(err);
     res.status(500).json({ message: "Something went wrong" });
   }
+});
+
+app.get("/login", (req, res) => {
+  res.send("hi");
 });
 
 app.listen(process.env.PORT || 8000, () => {
