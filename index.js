@@ -192,13 +192,12 @@ app.post("/login", async (req, res) => {
       .db("shopDB")
       .collection("Registration")
       .findOne({ email: req.body.email });
-
     // Login logic
     if (user) {
       let compare = await bcrypt.compare(req.body.password, user.password);
       if (compare) {
         let token = jwt.sign({ _id: user._id }, process.env.SECRET, {
-          expiresIn: "5m",
+          expiresIn: "20m",
         });
         res.json({ token });
         // res.json({ message: "logged in successfully" });
@@ -214,6 +213,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("server listening on port 3000");
+app.listen(process.env.PORT || 8000, () => {
+  console.log("server listening on port 8000");
 });
